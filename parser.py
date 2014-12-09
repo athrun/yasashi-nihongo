@@ -2,11 +2,10 @@
 #-*- coding: utf-8 -*-
 
 """
-    Skeleton program to process stdin
-    as a stream using the 'io' module.
-
-    TODO: Probably the same thing should be
-    done for stdout.
+    Script to fetch the daily news from
+    the NHK News Easy website, clean it,
+    upload it to S3 and then submit it to
+    Instapaper.
 """
 
 import io, os, sys
@@ -31,14 +30,11 @@ def process_stdin(handler, mode='rt'):
     for chunk in sys.stdin:
         handler(chunk)
 
-""" Do things in that function
+""" Process stdin stream line by line
 """
 def read_handler(data):
     url = data.strip('\n') # Remove the EOL
     r = requests.get(url)
-    #print "Status Code: ", r.status_code
-    #print "Content Type: ", r.headers['content-type']
-    #print "Encoding: ", r.encoding
     
     l = []
     today = time.strftime('%Y-%m-%d')
@@ -59,6 +55,10 @@ def read_handler(data):
             print "   Saved at ", result
             push_to_instapaper(result, item.get("title", None))
 
+"""
+    Find the URL of the content given its
+    base URL and content identifier
+"""
 def generate_content_url(base_url, content_id):
     content_url = base_url.rsplit('/', 1)[0]
     content_path = "%s/%s.html" % (content_id, content_id)
@@ -71,9 +71,6 @@ def generate_content_url(base_url, content_id):
 def fetch_item(url):
     r = requests.get(url)
     r.encoding = "utf-8"
-    #print "Status Code: ", r.status_code
-    #print "Content Type: ", r.headers['content-type']
-    #print "Encoding: ", r.encoding
     content = prettify(r.text)
     return content
 
